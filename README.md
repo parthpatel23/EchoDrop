@@ -206,13 +206,13 @@ http://localhost:4200
 ## 🖼 Screenshots
 
 ### Login Page
-<img width="1919" height="967" alt="Login Screen" src="https://github.com/user-attachments/assets/c4af2700-c77a-469a-ba8e-f95516489f4c" />
+<img width="1919" height="967" alt="Screenshot 2025-09-13 231456" src="https://github.com/user-attachments/assets/826e0b90-c922-472b-8821-577689bc1d17" />
 
 ### Dashboard
-<img width="1916" height="970" alt="Dashboard" src="https://github.com/user-attachments/assets/72fd0925-dc6b-45ee-b89c-dd381fddca4f" />
+<img width="1916" height="970" alt="Screenshot 2025-09-13 233520" src="https://github.com/user-attachments/assets/74ff90f9-fb8c-4694-9cb1-9d24ac296d61" />
 
 ### Schedule Message
-<img width="1919" height="972" alt="Schedule Message" src="https://github.com/user-attachments/assets/e0a51530-c9c3-4339-bbf2-73af0e39fc1b" />
+<img width="1919" height="972" alt="Screenshot 2025-09-13 234840" src="https://github.com/user-attachments/assets/6fc4cef0-47b2-4fb0-8f78-bb7b52102b65" />
 
 ---
 
