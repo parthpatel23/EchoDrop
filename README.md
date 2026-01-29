@@ -156,7 +156,6 @@ cd backend
 npm install
 ```
 
-```md
 Create a `.env` file (you can refer to `.env.example`):
 
 ```env
