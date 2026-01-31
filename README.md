@@ -16,19 +16,51 @@ EchoDrop solves this by providing a **secure, automated scheduled messaging syst
 
 ## ✨ Features
 
-* 🔐 User authentication (JWT & OAuth)
-* ⏰ Schedule messages for future delivery
-* 📩 Send messages via Email & SMS APIs
-* 🧑‍💻 User-friendly dashboard
-* 🌐 RESTful API architecture
-* 🔄 Secure backend using environment variables
+- 🔐 **User authentication (JWT)**
+  - Email/password registration and login
+  - Protected routes on both backend and Angular frontend
+
+- ⏰ **Schedule messages for future delivery**
+  - Store scheduled messages in MongoDB with platform, recipient, content, and time
+  - Support for different channels: Email, SMS, WhatsApp
+
+- 📩 **Multi-channel delivery**
+  - **Email via Gmail API (OAuth2)**  
+    - Uses the Gmail API with OAuth2 to send emails from a linked Google account
+  - **SMS & WhatsApp via Twilio (Trial / Sandbox Mode)**  
+    - Real integration with Twilio SDK  
+    - Messages are successfully sent to Twilio‑verified / sandbox numbers  
+    - See “Limitations” below for details
+
+- 🧑‍💻 **User-friendly dashboard (Angular)**
+  - Login / signup screens
+  - Dashboard with upcoming and past scheduled messages
+  - Forms to create and manage scheduled messages (“drops”)
+
+- 🌐 **RESTful API architecture**
+  - Clean separation between frontend (Angular SPA) and backend (Express API)
+  - JWT-based auth middleware to protect API routes
+
+- 🔒 **Secure backend configuration**
+  - Sensitive credentials in `.env` (not committed)
+  - Separate config for auth, services (Gmail, Twilio), and scheduler
 
 ---
 
 ## ⏱ Scheduling Logic
 
-Messages are stored with scheduled timestamps in the database.
-A backend job checks pending messages and triggers delivery at the correct time using **Email** or **Twilio SMS APIs**, ensuring reliable automation.
+Messages are stored with scheduled timestamps in MongoDB using models like `ScheduledMessage` and `Drop`.
+
+A backend job (see `backend/scheduler.js`) periodically:
+
+1. Finds pending messages whose scheduled time is due.
+2. Determines the correct platform (`email`, `sms`, or `whatsapp`).
+3. Calls the unified `sendMessage` service (`backend/src/services/sendMessage.js`), which:
+   - For **email**: uses the Gmail API with per-user OAuth2 refresh tokens.
+   - For **SMS**: uses the Twilio SMS API.
+   - For **WhatsApp**: uses Twilio’s WhatsApp API (sandbox).
+
+The job then updates the message’s status and logs a `MessageLog` entry for auditing.
 
 ---
 
@@ -49,15 +81,16 @@ A backend job checks pending messages and triggers delivery at the correct time 
 
 ### APIs & Tools
 
-* Twilio API (SMS)
-* Email API (Gmail / SMTP)
+* **Gmail API (OAuth2)** – Email delivery via Google
+* **Twilio API** – SMS & WhatsApp (trial / sandbox mode)
+* Passport.js (for auth configuration)
 * Git & GitHub
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 EchoDrop/
 ├── backend/                     # Node.js + Express backend
 │   ├── src/
@@ -156,30 +189,39 @@ cd backend
 npm install
 ```
 
-Create a `.env` file (you can refer to `.env.example`):
+Create a `.env` file `in backend/` (you can refer to `.env.example`):
 
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_url
 JWT_SECRET=your_secret_key
 
+# Gmail OAuth2 (used for sending email via Gmail API)
 GOOGLE_CLIENT_ID=your_client_id
 GOOGLE_CLIENT_SECRET=your_client_secret
-GOOGLE_REFRESH_TOKEN=your_refresh_token
+GOOGLE_REFRESH_TOKEN=optional_global_refresh_token
 GOOGLE_REDIRECT_URI=your_redirect_url
 
+# Email "from" address (if needed)
 EMAIL_USER=your_email
 
+# Twilio (trial / sandbox)
 TWILIO_ACCOUNT_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_SMS_PHONE=your_sms_number
-TWILIO_WHATSAPP_PHONE=your_whatsapp_number
+TWILIO_SMS_PHONE=your_twilio_sms_number           # e.g. +1xxxxxxxxxx
+TWILIO_WHATSAPP_PHONE=your_twilio_whatsapp_number # e.g. +1xxxxxxxxxx (sandbox)
 ```
 
 Run backend:
 
 ```bash
 npm start
+```
+
+The backend server will typically run at:
+
+```text
+http://localhost:5000
 ```
 
 ---
@@ -196,7 +238,7 @@ ng serve
 
 Open in browser:
 
-```
+```text
 http://localhost:4200
 ```
 
@@ -221,26 +263,50 @@ Sensitive credentials are managed using `.env` files and are not committed to th
 
 📌 A `.env.example` file is provided to help contributors configure the project safely.
 
+You must configure:
+* MONGO_URI – MongoDB connection string
+* JWT_SECRET – secret for signing JWT tokens
+* Gmail OAuth credentials for email sending
+* Twilio account credentials and phone numbers
+
+---
+
+## 📌 Current Limitations
+
+Because EchoDrop is built using free / trial services:
+- Twilio (SMS & WhatsApp)
+  - The Twilio account is in trial / sandbox mode.
+  - SMS messages are only delivered to phone numbers verified in the Twilio console.
+  - WhatsApp messages are only delivered to numbers that have joined the Twilio sandbox.
+  - This is a restriction of Twilio trial, not of the EchoDrop code.
+
+- Email via Gmail
+  - Requires correct Gmail OAuth2 configuration.
+  - For per-user sending, each user must link their Google account to provide a refresh token.
+
+In a production deployment with upgraded accounts, the same code can send to any valid user email/phone numbers.
+
 ---
 
 ## 📚 What I Learned
 
-* Implementing JWT-based authentication
-* Integrating third-party APIs securely
-* Designing scalable backend architecture
-* Handling scheduled background tasks
-* Connecting Angular frontend with REST APIs
-* Managing environment variables and application security
+* Implementing JWT-based authentication and protecting routes
+* Integrating third-party APIs (Gmail, Twilio) securely
+* Designing scalable backend architecture with controllers, services, and middleware
+* Handling scheduled background tasks and delayed message delivery
+* Building an Angular SPA that talks to a REST API
+* Managing environment variables and application security in a full-stack project
 
 ---
 
 ## 🚀 Future Improvements
 
-* 📱 Mobile responsiveness
-* 📊 Message delivery analytics
-* 🔔 Push notifications
-* 🧪 Unit & API testing
-* 🌍 Deployment (Render / Vercel)
+* 📱 Mobile responsiveness and improved UI/UX
+* 📊 Message delivery analytics & dashboards
+* 🔔 Push notifications (e.g. Web Push / FCM)
+* 💬 Additional free channels (e.g. Telegram bot integration)
+* 🧪 Unit & integration tests for both backend and frontend
+* 🌍 Deployment (e.g. Render / Railway for backend, Vercel / Netlify for frontend)
 
 ---
 
